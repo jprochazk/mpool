@@ -1,6 +1,6 @@
 {
     "name": "mpool",
-    "version": "0.0.2",
+    "version": "0.1.0",
     "description": "Micro object pooling library",
     "author": "Jan Procházka",
     "license": "MIT",
