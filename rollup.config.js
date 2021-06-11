@@ -21,7 +21,7 @@ export default [
         output: [
             { exports: "named", file: pkg.main, format: "cjs" },
             { file: pkg.module, format: "es" },
-            { name: "uECS", file: pkg.browser, format: "umd" },
+            { name: pkg.name, file: pkg.browser, format: "umd" },
         ],
     },
 ];

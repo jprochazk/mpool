@@ -1,24 +1,36 @@
-# TypeScript Library Template
+# mpool
 
-- TypeScript
-- Linting: ESLint
-- Testing: Jest
-- Build: Rollup (outputs UMD, CJS, and ESM)
-- GitHub actions:
-  - Automated testing
-  - Automated documentation
-  - Semi-automated releases
-- [src](./src) contains source (`.ts`) and test (`.test.ts`) files
+This library provides a simple object pool implementation.
 
-Setup:
-- Clone the repo and copy the files over to your project's directory, or create a repository on GitHub using this one as a template
-- Publish it onto NPM (you don't need to include any actual library code at this point)
-- In the GitHub repository, create a secret called `NPM_TOKEN` which contains an NPM automation token for your package
-  - Ensure that your NPM package is set to require 2FA or automation tokens for releases
-- Write your code, create tests for it, etc.
-- When you're ready to publish:
-  - Commit your latest changes
-  - Use `npm version` to bump the package version
-  - Push to github with `git push --follow-tags`
-  - Create a release on GitHub using the tag created by `npm version`
-  - Done!
+### Usage
+
+```ts
+import { Pool } from "mpool";
+
+class Thing {}
+
+// The pool receives a `create` callback, which is used to create new objects.
+const pool = new Pool(() => new Thing);
+for (let i = 0; i < pool.length; ++i) {
+    const obj = pool.get();
+    // ...
+    pool.put(obj);
+}
+```
+
+The pool is unbounded, meaning that the pool *never* discards objects. Every object you `.put()` into the pool is stored there until you `.get()` it again. This does mean that memory usage can only ever go up. To prevent this, the pool also contains a `.fit()` method, which shrinks the pool to `pool.preferredSize` objects, if there are more than `pool.preferredSize` objects in the pool.
+
+```ts
+import { Pool } from "mpool";
+
+class Thing {}
+
+const pool = new Pool(() => new Thing, /* preferred pool size */ 5);
+console.log(pool.length); // 5
+pool.put(new Thing);
+console.log(pool.length); // 6
+pool.fit();
+console.log(pool.length); // 5 <- pool has shrunk to our preferred pool size
+```
+
+The shrinking happens by creating a new internal storage and moving all the objects into it. This means that the old array is free for garbage collection, so it does *truly* lead to a memory usage decrease, whenever a GC cycle happens.
