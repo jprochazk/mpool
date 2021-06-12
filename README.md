@@ -15,25 +15,16 @@ use(obj);
 pool.put(obj);
 ```
 
-Why does the `Pool` receive a callback? It also greatly simplifies the library's role: It doesn't have to handle pooled object initialization. Here is the recommended approach in case your objects *do* require some form of initialization:
+Why does the `Pool` accept a callback? It greatly simplifies the library's role: It doesn't have to handle pooled object initialization. Here is the recommended approach in case your objects require initialization:
 
 ```ts
 import { Pool } from "mpool";
 
 class Thing {
-    private isFree = true;
     public value!: number;
 
     init(value: number): this {
         this.value = value;
-        this.isFree = false;
-        return this;
-    }
-
-    // In case your object also needs to know if it's not being used,
-    // or requires some special handling before it's returned to the pool
-    free(): this {
-        this.isFree = true;
         return this;
     }
 }
@@ -42,7 +33,7 @@ const pool = new Pool(() => new Thing);
 // When acquiring an object, explicitly initialize it:
 const obj = pool.get().init(100);
 use(obj);
-pool.put(obj.free());
+pool.put(obj);
 ```
 
 It's a little more boilerplate, but it ensures that your objects are easily reusable. The library *could* handle this for you, but it wouldn't be as versatile and could potentially cause some uncomfortable limitations, such as requiring `init` and `free` functions to exist.
