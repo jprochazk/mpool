@@ -8,17 +8,46 @@ This library provides a simple object pool implementation.
 import { Pool } from "mpool";
 
 class Thing {}
-
-// The pool receives a `create` callback, which is used to create new objects.
 const pool = new Pool(() => new Thing);
-for (let i = 0; i < pool.length; ++i) {
-    const obj = pool.get();
-    // ...
-    pool.put(obj);
-}
+
+const obj = pool.get();
+use(obj);
+pool.put(obj);
 ```
 
-The pool is unbounded, meaning that the pool *never* discards objects. Every object you `.put()` into the pool is stored there until you `.get()` it again. This does mean that memory usage can only ever go up. To prevent this, the pool also contains a `.fit()` method, which shrinks the pool to `pool.preferredSize` objects, if there are more than `pool.preferredSize` objects in the pool.
+Why does the `Pool` receive a callback? It also greatly simplifies the library's role: It doesn't have to handle pooled object initialization. Here is the recommended approach in case your objects *do* require some form of initialization:
+
+```ts
+import { Pool } from "mpool";
+
+class Thing {
+    private isFree = true;
+    public value!: number;
+
+    init(value: number): this {
+        this.value = value;
+        this.isFree = false;
+        return this;
+    }
+
+    // In case your object also needs to know if it's not being used,
+    // or requires some special handling before it's returned to the pool
+    free(): this {
+        this.isFree = true;
+        return this;
+    }
+}
+
+const pool = new Pool(() => new Thing);
+// When acquiring an object, explicitly initialize it:
+const obj = pool.get().init(100);
+use(obj);
+pool.put(obj.free());
+```
+
+It's a little more boilerplate, but it ensures that your objects are easily reusable. The library *could* handle this for you, but it wouldn't be as versatile and could potentially cause some uncomfortable limitations, such as requiring `init` and `free` functions to exist.
+
+The pool is unbounded, meaning that the pool *never* discards objects. Every object you `.put()` into the pool is stored there until you `.get()` it again. This does mean that memory usage will only ever go up. However, the pool also contains a `.fit()` method, which shrinks the pool to `pool.preferredSize` objects, if there are more than `pool.preferredSize` objects in the pool.
 
 ```ts
 import { Pool } from "mpool";

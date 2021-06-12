@@ -51,8 +51,8 @@ export class Pool<T> {
     }
 
     /**
-     * Shrinks the pool to `pool.size` objects, discarding any extras. 
-     * Does nothing if there aren't more than `pool.size` objects in the pool.
+     * Shrinks the pool to `pool.preferredSize` objects, discarding any extras. 
+     * Does nothing if there aren't more than `pool.preferredSize` objects in the pool.
      * 
      * Internally, this moves the pool's elements into a new, smaller array.
      */
