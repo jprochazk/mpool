@@ -9,7 +9,7 @@ export class Pool<T> {
          * The preferred size of the pool.
          * When you call `.fit()` on a pool, it shrinks to this size.
          */
-        public preferredSize = 100
+        public preferredSize = 0
     ) {
         this._pool = Array(this.preferredSize);
         for (let i = 0; i < this.preferredSize; ++i) {
@@ -33,7 +33,6 @@ export class Pool<T> {
     get length() { return this._count; }
 
     /**
-     * Get an object.
      * If there are objects in the pool, this returns one of them, 
      * otherwise, it allocates a new object.
      */
